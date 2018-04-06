@@ -1,0 +1,104 @@
+rubyのMix-in
+Mix-inとは
+クラスに機能を混ぜ合わせることで複数のクラスで機能を共有する機能となります
+
+モジュールとクラスとの違いは？
+モジュールは、インスタンス化できない
+モジュールは、継承できない
+モジュールは、クラスや他のモジュールに取込ことでできる
+
+用途
+名前空間をつくる
+クラスを拡張することで、クラスが肥大化を防げる
+モジュールのメソッドをあるオブジェクトの特異メソッドとして取り込む
+
+使い方は、主に3つ
+
+1.include
+module M
+  def hoge
+    p "Mだよ"
+  end
+end
+
+class Parent
+  def hoge
+    p "親だよ"
+  end
+end
+
+class Child < Parent
+  include M
+end
+
+child = Child.new
+child.hoge # => "Mだよ"が表示されます
+
+# クラスChildの継承チェーンをみてみましょう
+Child.ancestors
+# => [Child, M, Parent, Object, Kernel, BasicObject]
+
+2.prepend
+
+module M
+  def hoge
+    p "Mだよ"
+  end
+end
+
+class Parent
+end
+
+class Child < Parent
+  perpend M
+
+  def hoge
+    puts "Childだよ"
+  end
+end
+
+Child.new.hoge # "Mだよ"
+Child.ancestors
+# => [ M, Child, Parent, Object, Kernel, BasicObject]
+# MモジュールはChildクラスより優先になります
+
+3.extend
+include(prepend)との違いは
+
+includeはあるクラスのインスタンスに機能を追加
+extendある特定のオブジェクトだけにモジュールの機能を追加（特異クラス）
+クラス中で使われる場合
+
+module M
+  def hoge
+    p "Mだよ"
+  end
+end
+
+class Klass
+  extend M
+end
+
+klass = Klass.new
+klass.hoge # NoMethorError
+
+Klass.hoge # => "Mだよ"が表示されます
+# MモジュールのメソッドがChildクラスのクラスメソッドとして拡張されました
+インスタンス（オブジェクト）に使う場合
+module M
+  def hoge
+    p "Mだよ"
+  end
+end
+
+class Klass
+end
+
+klass = Klass.new
+klass.extend M
+klass.hoge # => "Mだよ"
+# Mモジュールのメソッドはklassの特異メソッドとして拡張されました
+
+klass_1 = Klass.new
+klass_1.hoge # => NoMethodError
+# klass_1オブジェクトに拡張されていないため、メソッドが見つからず、NoMethodErrorが発生
